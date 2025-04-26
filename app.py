@@ -1,50 +1,29 @@
 import streamlit as st
 import pandas as pd
-import pytesseract
-from pdf2image import convert_from_bytes
-from PIL import Image
 import io
 
+# --- App title ---
 st.title("💎 Receipt Organizer for Insurance Purposes")
-st.write("Upload receipts (images or PDFs), auto-extract info, export to Excel/CSV, and auto-backup to Google Drive!")
+st.write("Upload your receipts (images or PDFs), organize manually, export to Excel/CSV!")
 
+# --- Upload files ---
 uploaded_files = st.file_uploader("Upload Receipts", type=["jpg", "jpeg", "png", "pdf"], accept_multiple_files=True)
 
+# --- Initialize empty DataFrame ---
 columns = ["Date of Purchase", "Vendor Name", "Item Description", "Serial Number", "Purchase Amount", "Payment Method", "Receipt File"]
 data = []
 
+# --- Process uploaded files ---
 if uploaded_files:
     for uploaded_file in uploaded_files:
         file_name = uploaded_file.name
-        text = ""
+        data.append(["", "", "", "", "", "", file_name])
 
-        if uploaded_file.type == "application/pdf":
-            images = convert_from_bytes(uploaded_file.read())
-            if images:
-                img = images[0]
-                text = pytesseract.image_to_string(img)
-        else:
-            img = Image.open(uploaded_file)
-            text = pytesseract.image_to_string(img)
-
-        vendor = text.split("\\n")[0][:30] if text else ""
-        amount = ""
-        for line in text.split("\\n"):
-            if "$" in line:
-                amount = line.strip()
-                break
-        item_desc = ""
-        keywords = ["Rolex", "Cartier", "Omega", "Jewelry", "Ring", "Necklace", "Watch", "Bracelet"]
-        for word in keywords:
-            if word.lower() in text.lower():
-                item_desc = word
-                break
-
-        data.append(["", vendor, item_desc, "", amount, "", file_name])
-
+    # --- Display editable table ---
     df = pd.DataFrame(data, columns=columns)
     edited_df = st.data_editor(df, num_rows="dynamic")
 
+    # --- Export buttons ---
     st.write("\\n")
     col1, col2 = st.columns(2)
     with col1:
