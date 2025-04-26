@@ -1,0 +1,6 @@
+streamlit
+pytesseract
+pandas
+openpyxl
+Pillow
+pdf2image
